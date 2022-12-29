@@ -1,17 +1,19 @@
 #!/bin/bash
 
 echo "[Node Exporter] : download..."
-wget https://github.com/prometheus/node_exporter/releases/download/v1.5.0/node_exporter-1.5.0.linux-amd64.tar.gz
+su vagrant -c "cd ~/"
+su vagrant -c "wget https://github.com/prometheus/node_exporter/releases/download/v1.5.0/node_exporter-1.5.0.linux-amd64.tar.gz"
 echo "[Node Exporter] : successfully downloaded..."
 
 echo "[Node Exporter] : installation..."
-tar xvfz node_exporter-*.linux-amd64.tar.gz
+su vagrant -c "cd ~/"
+su vagrant -c "tar xvfz node_exporter-*.linux-amd64.tar.gz"
 cd node_exporter-*.*-amd64
-sudo cp node_exporter /usr/bin
+cp node_exporter /usr/bin
 
 echo "[Node Exporter] : creating a user..."
-sudo useradd -r -M -s /bin/false node_exporter
-sudo chown node_exporter:node_exporter /usr/bin/node_exporter
+useradd -r -M -s /bin/false node_exporter
+chown node_exporter:node_exporter /usr/bin/node_exporter
 
 echo "[Node Exporter] : creating a system unit..."
 {   echo '[Unit]'; \
@@ -24,15 +26,22 @@ echo "[Node Exporter] : creating a system unit..."
     echo '[Install]'; \
     echo 'WantedBy=multi-user.target'; \
 } | tee /etc/systemd/system/node_exporter.service; \
-
 echo "[Node Exporter] : reload daemon..."
-sudo systemctl daemon-reload
+systemctl daemon-reload
 echo "[Node Exporter] : enable node exporter..."
-sudo systemctl enable --now node_exporter
-sudo systemctl status node_exporter
+systemctl enable --now node_exporter
+systemctl status node_exporter
+su vagrant -c "rm -rf ~/node_exporter-*"
 echo "Node exporter has been setup succefully!"
 
-echo "[Ansible] : installing..."
+echo "[Ansible] : update system..."
 apt update && apt upgrade
+echo "[Ansible] : install dependencies..."
 apt install -y git python3 python3-pip
 update-alternatives --install /usr/bin/python python /usr/bin/python3 2
+python --version
+echo "[Ansible] : installing..."
+# su vagrant -c 'PATH="/home/vagrant/.local/bin:${PATH}"'
+apt install -y ansible
+su vagrant -c "ansible --version"
+su vagrant -c "mkdir ansible"
